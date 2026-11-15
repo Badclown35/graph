@@ -27,4 +27,20 @@ expectSame('C', $csvRows[0]['status'], 'Watching status must map to Graph comple
 expectSame('P', $csvRows[1]['status'], 'Plan-to-watch status must map to Graph planned status.');
 expectSame(3, $csvRows[0]['rewatches'], 'CSV rewatch count must be retained.');
 
+$malformedCsvRejected = false;
+try {
+    MalAchievementImportHelper::parse("anime_id,anime_title\n123,\"Broken title\n");
+} catch (InvalidArgumentException $error) {
+    $malformedCsvRejected = true;
+}
+expectSame(true, $malformedCsvRejected, 'CSV parser must reject unfinished quoted fields.');
+
+$duplicateCsvRejected = false;
+try {
+    MalAchievementImportHelper::parse("anime_id,anime_title\n123,First\n123,Duplicate\n");
+} catch (InvalidArgumentException $error) {
+    $duplicateCsvRejected = true;
+}
+expectSame(true, $duplicateCsvRejected, 'Importer must reject duplicate MAL IDs rather than double-counting entries.');
+
 echo "MAL achievement import parser checks passed.\n";
