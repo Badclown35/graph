@@ -88,6 +88,10 @@ class UserControllerAchievementsModule extends AbstractUserControllerModule
     public static function work(&$controllerContext, &$viewContext)
     {
         $viewContext->viewName = 'user-achievements';
+        if (isset($_FILES['mal_export']) && $_FILES['mal_export']['error'] !== UPLOAD_ERR_NO_FILE) {
+            // Uploaded MAL data is private request input; never cache the response.
+            $controllerContext->cache->bypass(true);
+        }
         $viewContext->meta->title = $viewContext->user->name . ' - Achievements (' . Media::toString($viewContext->media) . ') - ' . Config::$title;
         $viewContext->meta->description = $viewContext->user->name . '\'s ' . Media::toString($viewContext->media) . ' achievements.';
         WebMediaHelper::addEntries($viewContext);
@@ -137,6 +141,7 @@ class UserControllerAchievementsModule extends AbstractUserControllerModule
                         $entry->status = $row['status'];
                         $entry->finished_episodes = $row['progress'];
                         $entry->finished_volumes = 0;
+                        $entry->rewatch_count = $row['rewatches'];
                         $importedEntries[] = $entry;
                     }
 
@@ -317,7 +322,14 @@ class UserControllerAchievementsModule extends AbstractUserControllerModule
 
                 return [floatval(sprintf('%.02f', $distribution->getTotalTime() / 1440.)), null];
             },
-            're' => function ($groupData) use ($viewContext) {
+            're' => function ($groupData) use ($viewContext, $listNonPlanned) {
+                if (!empty($viewContext->malImportActive)) {
+                    $rewatches = 0;
+                    foreach ($listNonPlanned as $entry) {
+                        $rewatches += intval($entry->rewatch_count ?? 0);
+                    }
+                    return [$rewatches, null];
+                }
                 return [$viewContext->media === 'M' ? $viewContext->user->manga_views : $viewContext->user->anime_views, null];
             },
             'year' => function ($groupData) use ($listFinished) {
