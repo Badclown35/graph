@@ -44,7 +44,7 @@ def friendly_name(filename):
     slug = filename[:-5]
     slug = re.sub(r"^(anime|manga)-", "", slug)
     names = {
-        "finished":"Completed entries", "dropped-0":"Never dropped",
+        "dementia-psychological":"Psychological", "finished":"Completed entries", "dropped-0":"Never dropped",
         "duration-short":"Short episodes", "episode-long":"Long series",
         "franchise-long":"Franchise completion", "game":"Video game adaptations",
         "gar":"GAR", "historical":"Historical", "horror-thriller":"Horror / Thriller",
@@ -70,9 +70,7 @@ def how_to_earn(requirement, media, group_name):
     if kind == "dropped-0":
         return f"{verb.capitalize()} entries without dropping any. One dropped entry disables this badge."
     if kind == "genre-title":
-        genre_names = [GENRES.get(int(g), f"genre ID {g}") for g in requirement.get("genre", [])]
-        extra = f" Genres: {', '.join(genre_names)}." if genre_names else ""
-        return f"{verb.capitalize()} {group_name.lower()} titles. The count uses completed entries.{extra}"
+        return f"{verb.capitalize()} {group_name.lower()} titles. The count uses completed entries and any extra titles specified by the original definition."
     if kind == "title":
         return f"{verb.capitalize()} the specific titles listed for this achievement."
     if kind == "source-title":
@@ -105,7 +103,10 @@ catalog = {"schemaVersion":1, "source":"Graph achievement definitions", "groups"
 for path in sorted(SOURCE.glob("*.json")):
     if path.name in EXCLUDED:
         continue
-    definition = json.loads(path.read_text(encoding="utf-8"))
+    raw_definition = path.read_text(encoding="utf-8")
+    raw_definition = re.sub(r"//.*$", "", raw_definition, flags=re.MULTILINE)
+    raw_definition = re.sub(r"#.*$", "", raw_definition, flags=re.MULTILINE)
+    definition = json.loads(raw_definition)
     media = "anime" if definition.get("media") == "A" else "manga"
     group_name = friendly_name(path.name)
     requirement = definition.get("requirement", {})
