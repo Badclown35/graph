@@ -1,0 +1,46 @@
+name: Deploy achievement preview
+on:
+  push:
+    branches:
+      - feature/achievement-dashboard-v1
+    paths:
+      - 'preview/**'
+      - '.github/workflows/achievement-preview-pages.yml'
+      - 'public_html/image/achievement/**'
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: pages-preview
+  cancel-in-progress: true
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout feature branch
+        uses: actions/checkout@v4
+        with:
+          ref: feature/achievement-dashboard-v1
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+      - name: Assemble preview site
+        run: |
+          mkdir -p _site
+          cp preview/index.html _site/index.html
+          touch _site/.nojekyll
+          if [ -d public_html/image/achievement ]; then
+            mkdir -p _site/image/achievement
+            cp -R public_html/image/achievement/. _site/image/achievement/
+          fi
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
