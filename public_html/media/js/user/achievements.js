@@ -15,7 +15,7 @@ $(function()
             var state = entry.attr('data-achievement-state');
             var matchesFilter = activeFilter === 'all'
                 ? (state !== 'previous' || showPrevious)
-                : (activeFilter === 'previous' ? state === 'previous' : state === 'current');
+                : (activeFilter === 'previous' ? state === 'previous' : (activeFilter === 'locked' ? state === 'locked' : state === 'current'));
             var matchesSearch = !query || entry.text().toLowerCase().indexOf(query) !== -1;
             var visible = matchesFilter && matchesSearch;
 
