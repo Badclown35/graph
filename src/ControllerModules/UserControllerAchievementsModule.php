@@ -97,7 +97,10 @@ class UserControllerAchievementsModule extends AbstractUserControllerModule
 
         $list = $viewContext->user->getMixedUserMedia($viewContext->media);
         $viewContext->malEntryCount = count($list);
-        $viewContext->franchiseCount = count(Model_MixedUserMedia::getFranchises($list));
+        $franchiseGroups = Model_MixedUserMedia::getFranchises($list);
+        $viewContext->franchiseCount = count(array_filter($franchiseGroups, function ($franchise) {
+            return !empty($franchise->ownEntries[0]->franchise);
+        }));
         $listFinished = UserMediaFilter::doFilter($list, UserMediaFilter::finished());
         $listNonPlanned = UserMediaFilter::doFilter($list, UserMediaFilter::nonPlanned());
         $listDropped = UserMediaFilter::doFilter($list, UserMediaFilter::dropped());
