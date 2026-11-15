@@ -136,6 +136,7 @@ for path in sorted(SOURCE.glob("*.json")):
 ASSET_ROOT.mkdir(parents=True, exist_ok=True)
 IMAGE_DEST.mkdir(parents=True, exist_ok=True)
 (ASSET_ROOT / "catalog.json").write_text(json.dumps(catalog, ensure_ascii=False), encoding="utf-8")
+(ASSET_ROOT / "catalog.js").write_text("window.GRAPH_CATALOG = " + json.dumps(catalog, ensure_ascii=False) + ";", encoding="utf-8")
 for item in IMAGE_SOURCE.iterdir():
     if item.is_file():
         shutil.copy2(item, IMAGE_DEST / item.name)
