@@ -1,0 +1,57 @@
+name: Build Graph Achievements APK
+
+on:
+  push:
+    branches:
+      - feature/achievement-dashboard-v1
+    paths:
+      - 'android/**'
+      - 'data/achievement/**'
+      - 'public_html/image/achievement/**'
+      - 'scripts/build-android-catalog.py'
+      - '.github/workflows/android-achievements-apk.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out feature branch
+        uses: actions/checkout@v4
+        with:
+          ref: feature/achievement-dashboard-v1
+          submodules: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Generate complete badge catalogue and copy original artwork
+        run: python scripts/build-android-catalog.py
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.7'
+
+      - name: Build debug APK
+        working-directory: android
+        run: gradle --no-daemon assembleDebug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: graph-achievements-debug-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 30
