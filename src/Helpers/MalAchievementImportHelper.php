@@ -41,6 +41,7 @@ class MalAchievementImportHelper
                 'score' => (string) ($item->my_score ?? ''),
                 'status' => (string) ($item->my_status ?? ''),
                 'progress' => (string) ($item->my_watched_episodes ?? ''),
+                'rewatches' => (string) ($item->my_times_watched ?? ''),
                 'total' => (string) ($item->series_episodes ?? $item->anime_episodes ?? ''),
             ]);
             if ($row !== null) {
@@ -116,6 +117,7 @@ class MalAchievementImportHelper
             'score' => $column(['my_score']),
             'status' => $column(['my_status']),
             'progress' => $column(['my_watched_episodes']),
+            'rewatches' => $column(['my_times_watched']),
             'total' => $column(['anime_episodes', 'series_episodes']),
         ];
         if ($indices['title'] === null || $indices['mal_id'] === null) {
@@ -171,6 +173,7 @@ class MalAchievementImportHelper
             'score' => max(0, min(10, (int) ($values['score'] ?? 0))),
             'status' => $statusMap[strtolower($status)] ?? UserListStatus::Unknown,
             'progress' => max(0, (int) ($values['progress'] ?? 0)),
+            'rewatches' => max(0, (int) ($values['rewatches'] ?? 0)),
             'total' => max(0, (int) ($values['total'] ?? 0)),
         ];
     }
