@@ -1,0 +1,35 @@
+name: Achievement dashboard checks
+
+on:
+  push:
+    branches:
+      - feature/achievement-dashboard-v1
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  syntax:
+    name: PHP and JavaScript syntax
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '7.4'
+          coverage: none
+
+      - name: Lint achievement controller
+        run: php -l src/ControllerModules/UserControllerAchievementsModule.php
+
+      - name: Lint achievement view
+        run: php -l src/Views/user-achievements.phtml
+
+      - name: Check achievement JavaScript
+        run: node --check public_html/media/js/user/achievements.js
