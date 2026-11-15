@@ -360,3 +360,21 @@ h3 {
         justify-content: flex-start;
     }
 }
+
+/* Locked next-milestone cards */
+.achi-dashboard .achi-entry--locked {
+    border-style: dashed;
+    background: rgba(109, 105, 216, .035);
+}
+.achi-dashboard .achi-entry--locked .achi-entry__level {
+    color: #4b9ca8;
+}
+.achi-goal-progress {
+    margin: 0;
+    color: var(--achi-muted);
+    font-size: .78em;
+    font-variant-numeric: tabular-nums;
+}
+.achi-dashboard__stats {
+    grid-template-columns: repeat(auto-fit, minmax(115px, 1fr));
+}
