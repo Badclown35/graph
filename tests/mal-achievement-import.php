@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/../src/Enums/Enum.php';
 require_once __DIR__ . '/../src/Enums/UserListStatus.php';
 require_once __DIR__ . '/../src/Helpers/MalAchievementImportHelper.php';
 
