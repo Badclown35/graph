@@ -44,6 +44,9 @@ $(function()
         if (activeFilter === 'previous')
         {
             showPrevious = true;
+            dashboard.find('.achi-previous-toggle')
+                .text('Hide previous levels')
+                .attr('aria-expanded', 'true');
         }
 
         applyAchievementFilters();
