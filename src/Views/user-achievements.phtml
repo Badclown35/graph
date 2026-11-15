@@ -4,7 +4,8 @@ $visibleAchievements = array_filter($viewContext->achievements, function ($achie
 });
 $unlockedCount = count($visibleAchievements);
 $previousCount = intval($viewContext->hiddenCount);
-$totalDisplayed = count($viewContext->achievements);\n$lockedCount = count($viewContext->lockedAchievements);
+$totalDisplayed = count($viewContext->achievements);
+$lockedCount = count($viewContext->lockedAchievements);
 ?>
 <div class="section achi achi-dashboard">
     <div class="achi-dashboard__header">
