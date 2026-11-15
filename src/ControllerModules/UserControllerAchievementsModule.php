@@ -41,6 +41,11 @@ class UserControllerAchievementsModule extends AbstractUserControllerModule
         $definitions = array_fill_keys(Media::getConstList(), []);
 
         foreach (glob($dir . DIRECTORY_SEPARATOR . '*.json') as $file) {
+            // Do not surface the explicitly adult-themed one-off achievement.
+            if (basename($file) === 'anime-boku-no-pico.json') {
+                continue;
+            }
+
             $definition = TextHelper::loadJson($file);
 
             $prevAch = null;
@@ -275,6 +280,11 @@ class UserControllerAchievementsModule extends AbstractUserControllerModule
         $hiddenCount = 0;
 
         foreach ($achList[$viewContext->media] as $group => $groupData) {
+            // Keep adult-themed achievement categories out of the dashboard.
+            if ($groupData->requirement->type === 'pervert') {
+                continue;
+            }
+
             //get subject and entries basing on requirement type
             $evaluator = $evaluators[$groupData->requirement->type];
             list ($subject, $entriesOwned) = $evaluator($groupData);
