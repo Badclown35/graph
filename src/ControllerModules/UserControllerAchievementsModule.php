@@ -320,7 +320,50 @@ class UserControllerAchievementsModule extends AbstractUserControllerModule
             $achievements = array_merge($achievements, array_reverse($localAchievements));
         }
 
+        // Build one next milestone per eligible category without changing the original earned-level evaluator.
+        // The original artwork path is retained from the achievement definition.
+        $lockedAchievements = [];
+
+        foreach ($achList[$viewContext->media] as $groupData) {
+            $requirementType = $groupData->requirement->type;
+
+            // Keep adult-themed categories out of the progress dashboard.
+            if ($requirementType === 'pervert') {
+                continue;
+            }
+
+            $evaluator = $evaluators[$requirementType];
+            list($subject, $entriesOwned) = $evaluator($groupData);
+
+            if ($subject === null) {
+                continue;
+            }
+
+            $nextAchievement = null;
+            $nextThreshold = null;
+
+            foreach ($groupData->achievements as $candidate) {
+                list($candidateThreshold) = self::getThreshold($candidate);
+
+                if ($candidateThreshold > $subject &&
+                    ($nextThreshold === null || $candidateThreshold < $nextThreshold)) {
+                    $nextAchievement = $candidate;
+                    $nextThreshold = $candidateThreshold;
+                }
+            }
+
+            if ($nextAchievement !== null && $nextThreshold > 0) {
+                $locked = clone $nextAchievement;
+                $locked->locked = true;
+                $locked->subject = round($subject, 2);
+                $locked->target = $nextThreshold;
+                $locked->progress = max(0, min(100, ($subject / $nextThreshold) * 100));
+                $lockedAchievements[] = $locked;
+            }
+        }
+
         $viewContext->achievements = $achievements;
+        $viewContext->lockedAchievements = $lockedAchievements;
         $viewContext->private = $viewContext->user->isUserMediaPrivate($viewContext->media);
         $viewContext->hiddenCount = $hiddenCount;
     }
