@@ -138,7 +138,13 @@ ASSET_ROOT.mkdir(parents=True, exist_ok=True)
 IMAGE_DEST.mkdir(parents=True, exist_ok=True)
 (ASSET_ROOT / "catalog.json").write_text(json.dumps(catalog, ensure_ascii=False), encoding="utf-8")
 (ASSET_ROOT / "catalog.js").write_text("window.GRAPH_CATALOG = " + json.dumps(catalog, ensure_ascii=False) + ";", encoding="utf-8")
+used_images = {
+    achievement["image"]
+    for group in catalog["groups"]
+    for achievement in group["achievements"]
+    if achievement["image"]
+}
 for item in IMAGE_SOURCE.iterdir():
-    if item.is_file():
+    if item.is_file() and item.name in used_images:
         shutil.copy2(item, IMAGE_DEST / item.name)
 print(f"Built {sum(len(g['achievements']) for g in catalog['groups'])} badges in {len(catalog['groups'])} groups.")
