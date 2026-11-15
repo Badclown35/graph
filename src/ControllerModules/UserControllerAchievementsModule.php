@@ -134,8 +134,9 @@ class UserControllerAchievementsModule extends AbstractUserControllerModule
                 return [count($listFinished), null];
             },
             'dropped-0' => function ($groupData) use ($listFinished, $listDropped) {
+                // This milestone is permanently unavailable once an entry has been dropped.
                 if (count($listDropped)) {
-                    return [0, null];
+                    return [null, null];
                 }
 
                 return [count($listFinished), null];
