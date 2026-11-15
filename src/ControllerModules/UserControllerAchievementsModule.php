@@ -21,6 +21,15 @@ class UserControllerAchievementsModule extends AbstractUserControllerModule
         return 6;
     }
 
+    public static function preWork(&$controllerContext, &$viewContext)
+    {
+        // Bypass the page cache before the front controller checks it, so an
+        // uploaded private MAL export is processed only for this request.
+        if (isset($_FILES['mal_export']) && $_FILES['mal_export']['error'] !== UPLOAD_ERR_NO_FILE) {
+            $controllerContext->cache->bypass(true);
+        }
+    }
+
     private static function getThreshold($achievement)
     {
         $threshold = $achievement->threshold;
@@ -88,10 +97,6 @@ class UserControllerAchievementsModule extends AbstractUserControllerModule
     public static function work(&$controllerContext, &$viewContext)
     {
         $viewContext->viewName = 'user-achievements';
-        if (isset($_FILES['mal_export']) && $_FILES['mal_export']['error'] !== UPLOAD_ERR_NO_FILE) {
-            // Uploaded MAL data is private request input; never cache the response.
-            $controllerContext->cache->bypass(true);
-        }
         $viewContext->meta->title = $viewContext->user->name . ' - Achievements (' . Media::toString($viewContext->media) . ') - ' . Config::$title;
         $viewContext->meta->description = $viewContext->user->name . '\'s ' . Media::toString($viewContext->media) . ' achievements.';
         WebMediaHelper::addEntries($viewContext);
