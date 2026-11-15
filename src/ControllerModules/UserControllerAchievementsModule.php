@@ -141,6 +141,7 @@ class UserControllerAchievementsModule extends AbstractUserControllerModule
                         $entry->status = $row['status'];
                         $entry->finished_episodes = $row['progress'];
                         $entry->finished_volumes = 0;
+                        $entry->finished_duration = $entry->duration * $entry->finished_episodes;
                         $entry->rewatch_count = $row['rewatches'];
                         $importedEntries[] = $entry;
                     }
