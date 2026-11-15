@@ -34,6 +34,14 @@ $lockedCount = count($viewContext->lockedAchievements);
             <span class="achi-stat__value"><?php echo $lockedCount ?></span>
             <span class="achi-stat__label">Next milestones</span>
         </div>
+        <div class="achi-stat">
+            <span class="achi-stat__value"><?php echo intval($viewContext->malEntryCount) ?></span>
+            <span class="achi-stat__label">MAL entries</span>
+        </div>
+        <div class="achi-stat">
+            <span class="achi-stat__value"><?php echo intval($viewContext->franchiseCount) ?></span>
+            <span class="achi-stat__label">Franchise groups</span>
+        </div>
     </div>
 
     <?php if ($previousCount > 0): ?>
