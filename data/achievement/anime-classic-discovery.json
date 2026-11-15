@@ -1,0 +1,44 @@
+{
+  "media": "A",
+  "order": 999,
+  "achievements": [
+    {
+      "threshold": 1,
+      "id": "anime-discovery-1",
+      "level": "First Discovery",
+      "title": "The Opening Scene",
+      "desc": "Complete your first anime entry. Every great watchlist starts somewhere."
+    },
+    {
+      "threshold": 5,
+      "id": "anime-discovery-5",
+      "level": "Getting Into It",
+      "title": "A New Favorite",
+      "desc": "Complete 5 anime entries. You are beginning to build your own collection of stories."
+    },
+    {
+      "threshold": 10,
+      "id": "anime-discovery-10",
+      "level": "Finding Your Genre",
+      "title": "The Explorer",
+      "desc": "Complete 10 anime entries. There is a whole range of worlds and genres waiting to be discovered."
+    },
+    {
+      "threshold": 25,
+      "id": "anime-discovery-25",
+      "level": "A Growing Watchlist",
+      "title": "Seasoned Viewer",
+      "desc": "Complete 25 anime entries. Your watch history is starting to tell a story of its own."
+    },
+    {
+      "threshold": 50,
+      "id": "anime-discovery-50",
+      "level": "Dedicated Fan",
+      "title": "The Anime Archivist",
+      "desc": "Complete 50 anime entries. You have explored plenty of stories and have many more ahead."
+    }
+  ],
+  "requirement": {
+    "type": "finished"
+  }
+}
