@@ -30,10 +30,24 @@ class MainActivity : Activity() {
             ): Boolean {
                 filePathCallback?.onReceiveValue(null)
                 filePathCallback = callback
-                val intent = params?.createIntent() ?: Intent(Intent.ACTION_GET_CONTENT).apply {
-                    type = "*/*"
+
+                // Do not trust the WebView-provided MIME filter: some Android file
+                // providers classify MAL XML exports as application/octet-stream.
+                // A broad document picker lets the user select .xml and .csv files.
+                val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
                     addCategory(Intent.CATEGORY_OPENABLE)
+                    type = "*/*"
+                    putExtra(Intent.EXTRA_MIME_TYPES, arrayOf(
+                        "application/xml",
+                        "text/xml",
+                        "application/octet-stream",
+                        "text/csv",
+                        "text/plain",
+                        "*/*"
+                    ))
+                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 }
+
                 return try {
                     startActivityForResult(intent, filePickerRequest)
                     true
