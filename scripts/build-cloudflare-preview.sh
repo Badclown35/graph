@@ -5,7 +5,7 @@ set -euo pipefail
 rm -rf dist
 mkdir -p dist/image/achievement
 cp preview/index.html dist/index.html
-cp public_html/image/achievement/. dist/image/achievement/
+cp -R public_html/image/achievement/. dist/image/achievement/
 touch dist/_headers
 cat > dist/_headers <<'EOF'
 /*
