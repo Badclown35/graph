@@ -11,14 +11,14 @@ ASSET_ROOT = ROOT / "android" / "app" / "src" / "main" / "assets"
 IMAGE_SOURCE = ROOT / "public_html" / "image" / "achievement"
 IMAGE_DEST = ASSET_ROOT / "achievement"
 
-# The mobile catalogue intentionally omits explicitly adult/sexual achievement groups.
+# Keep only categories that are explicitly adult/sexual out of this teen-friendly edition.
+# Boys Love / Girls Love are ordinary romance-genre categories and are included.
 EXCLUDED = {
     "anime-boku-no-pico.json",
     "anime-pervert-0.json", "anime-pervert-1.json",
     "anime-pervert-2.json", "anime-pervert-3.json",
     "manga-pervert-0.json", "manga-pervert-1.json",
     "manga-pervert-2.json", "manga-pervert-3.json",
-    "manga-yaoi-shounen-ai.json", "manga-yuri-shoujo-ai.json",
 }
 
 GENRES = {
@@ -41,95 +41,115 @@ GENRES = {
 }
 
 def friendly_name(filename):
-    slug = filename[:-5]
-    slug = re.sub(r"^(anime|manga)-", "", slug)
+    slug = re.sub(r"^(anime|manga)-", "", filename[:-5])
     names = {
-        "dementia-psychological":"Psychological", "finished":"Completed entries", "dropped-0":"Never dropped",
-        "duration-short":"Short episodes", "episode-long":"Long series",
-        "franchise-long":"Franchise completion", "game":"Video game adaptations",
-        "gar":"GAR", "historical":"Historical", "horror-thriller":"Horror / Thriller",
-        "light-novel":"Light novel adaptations", "mahou-shoujo":"Magical girls",
-        "mecha":"Mecha", "music":"Music", "mystery":"Mystery", "original":"Original source",
+        "dementia-psychological":"Psychological", "finished":"Completed entries",
+        "dropped-0":"Never dropped", "duration-short":"Short episodes",
+        "episode-long":"Long series", "franchise-long":"Franchise completion",
+        "game":"Video game adaptations", "gar":"GAR", "historical":"Historical",
+        "horror-thriller":"Horror / Thriller", "light-novel":"Light novel adaptations",
+        "mahou-shoujo":"Magical girls", "mecha":"Mecha", "music":"Music",
+        "mystery":"Mystery", "original":"Original source",
         "release-classic":"Classic releases", "release-old":"Old releases",
-        "romance":"Romance", "school-days":"School Days", "score-high":"High average score",
-        "score-low":"Low average score", "score-very-low":"Very low average score",
-        "slice-of-life":"Slice of Life", "space":"Space", "sports":"Sports",
-        "studio-ghibli":"Studio Ghibli", "time":"Total watch/read time",
-        "year":"Release-year variety", "horror":"Horror", "novel":"Novels",
-        "vampire-demons":"Vampires / Demons", "volume-long":"Long manga",
-        "re":"Rewatches",
+        "romance":"Romance", "school-days":"School Days",
+        "score-high":"High average score", "score-low":"Low average score",
+        "score-very-low":"Very low average score", "slice-of-life":"Slice of Life",
+        "space":"Space", "sports":"Sports", "studio-ghibli":"Studio Ghibli",
+        "time":"Total watch/read time", "year":"Release-year variety",
+        "horror":"Horror", "novel":"Novels", "vampire-demons":"Vampires / Demons",
+        "volume-long":"Long manga", "re":"Rewatches / rereads",
+        "yaoi-shounen-ai":"Boys Love", "yuri-shoujo-ai":"Girls Love",
     }
     return names.get(slug, slug.replace("-", " ").title())
 
+def threshold_label(threshold, kind, media):
+    unit = "completed anime entries" if media == "anime" else "completed manga entries"
+    if kind == "score":
+        return "Average MAL score: " + str(threshold) + " (out of 10)"
+    if kind == "episode-long":
+        return str(threshold) + " qualifying anime entries with over 99 watched episodes"
+    if kind == "volume-long":
+        return str(threshold) + " qualifying manga entries with over 19 read volumes"
+    if kind == "re":
+        return str(threshold) + " total rewatches/rereads"
+    if kind == "time":
+        return str(threshold) + " total watch/read time (Graph's original time calculation)"
+    if kind == "year":
+        return str(threshold) + " distinct release years"
+    if kind == "franchise":
+        return str(threshold) + " qualifying franchise completions"
+    return str(threshold) + " " + unit + " matching this badge group"
+
 def how_to_earn(requirement, media, group_name):
     kind = requirement.get("type", "unknown")
-    verb = "complete" if media == "A" else "finish reading"
-    unit = "anime entries" if media == "A" else "manga entries"
+    unit = "anime entries" if media == "anime" else "manga entries"
+    verb = "complete" if media == "anime" else "finish reading"
     if kind == "finished":
-        return f"{verb.capitalize()} the required number of {unit}."
+        return f"Import your MAL list, then {verb} the number of {unit} shown on the level. Each separate MAL entry counts separately."
     if kind == "dropped-0":
-        return f"{verb.capitalize()} entries without dropping any. One dropped entry disables this badge."
+        return f"{verb.capitalize()} the required number of {unit} while keeping your Dropped count at zero. Even one dropped entry blocks this group."
     if kind == "genre-title":
-        return f"{verb.capitalize()} {group_name.lower()} titles. The count uses completed entries and any extra titles specified by the original definition."
+        genres = requirement.get("genre", [])
+        if not isinstance(genres, list):
+            genres = [genres]
+        names = [GENRES.get(g, "Graph genre " + str(g)) for g in genres]
+        return f"{verb.capitalize()} entries counted by Graph's original genre rule for {group_name}. Genre filter: {', '.join(names) if names else 'source-defined filter'}. The level's target is the number shown on its card."
     if kind == "title":
-        return f"{verb.capitalize()} the specific titles listed for this achievement."
+        return f"{verb.capitalize()} the exact MAL title(s) listed in Graph's original definition. Similar titles or another season do not count unless separately listed."
     if kind == "source-title":
-        return f"{verb.capitalize()} entries with the required source type, or the specific listed titles."
+        return f"{verb.capitalize()} entries matching Graph's required source type for {group_name}, or the exact MAL titles listed in its original definition."
     if kind == "score":
-        return "Reach the required average score across eligible non-planned entries."
+        return "Reach the average MAL score range printed on the level. The import calculates the mean of scored entries and ignores planned entries and unscored entries."
     if kind == "release-old":
-        return "Complete entries whose release ended before 1981."
+        return "Complete entries whose release ended before 1981. The year comes from Graph's title metadata, not the date you watched it."
     if kind == "release-classic":
-        return "Complete entries whose release ended from 1981 through 2000."
+        return "Complete entries whose release ended from 1981 through 2000. The year comes from Graph's title metadata."
     if kind == "duration-short":
-        return "Complete entries with an episode runtime under 16 minutes."
+        return "Complete anime entries with an episode runtime under 16 minutes. Runtime is read from Graph's title metadata."
     if kind == "episode-long":
-        return "Have more than 99 watched episodes on an eligible entry."
+        return "Have the required number of eligible anime entries with more than 99 watched episodes on each entry."
     if kind == "volume-long":
-        return "Read more than 19 volumes of an eligible manga."
+        return "Read more than 19 volumes of each qualifying manga entry. Your MAL export must include read-volume progress."
     if kind == "franchise":
-        return "Complete at least two entries in a franchise with more than 199 combined episodes."
+        return "Complete at least two entries in a franchise whose combined episode count is over 199. Franchise and episode data come from Graph's metadata."
     if kind == "novel":
-        return "Read volumes from manga classified as a novel or light novel."
+        return "Finish reading entries Graph classifies as novels or light novels. The classification comes from Graph's manga metadata."
     if kind == "time":
-        return "Accumulate the required total watch/read time."
+        return "Accumulate the required total watch/read time. Graph calculates this from its title metadata and your list progress."
     if kind == "re":
-        return "Accumulate the required number of rewatches."
+        return "Accumulate the total number of rewatches or rereads shown on the level. Import the MAL rewatch/reread count."
     if kind == "year":
-        return "Complete entries spanning the required number of distinct release years."
-    return f"Meet the {group_name.lower()} requirement shown for this badge."
+        return "Complete entries spanning the required number of distinct release years. Release years come from Graph's title metadata."
+    return f"Follow the target shown on the card and Graph's original {group_name.lower()} rule."
 
-catalog = {"schemaVersion":1, "source":"Graph achievement definitions", "groups":[]}
+catalog = {"schemaVersion":2, "source":"Graph achievement definitions", "groups":[]}
 for path in sorted(SOURCE.glob("*.json")):
     if path.name in EXCLUDED:
         continue
-    raw_definition = path.read_text(encoding="utf-8")
-    raw_definition = re.sub(r"//.*$", "", raw_definition, flags=re.MULTILINE)
-    raw_definition = re.sub(r"#.*$", "", raw_definition, flags=re.MULTILINE)
-    definition = json.loads(raw_definition)
+    raw = path.read_text(encoding="utf-8")
+    raw = re.sub(r"//.*$", "", raw, flags=re.MULTILINE)
+    raw = re.sub(r"#.*$", "", raw, flags=re.MULTILINE)
+    definition = json.loads(raw)
     media = "anime" if definition.get("media") == "A" else "manga"
     group_name = friendly_name(path.name)
     requirement = definition.get("requirement", {})
+    kind = requirement.get("type", "unknown")
+    group_how = how_to_earn(requirement, media, group_name)
     group = {
-        "id": path.stem,
-        "name": group_name,
-        "media": media,
-        "requirementType": requirement.get("type", "unknown"),
-        "howToEarn": how_to_earn(requirement, media, group_name),
-        "achievements": []
+        "id": path.stem, "name": group_name, "media": media,
+        "requirementType": kind, "howToEarn": group_how, "achievements": []
     }
     for achievement in definition.get("achievements", []):
         badge_id = achievement.get("id", "")
         matches = sorted(IMAGE_SOURCE.glob(badge_id + ".*"))
         image = matches[0].name if matches else ""
         group["achievements"].append({
-            "id": badge_id,
-            "level": achievement.get("level", ""),
+            "id": badge_id, "level": achievement.get("level", ""),
             "title": achievement.get("title", ""),
             "description": achievement.get("desc", ""),
             "threshold": achievement.get("threshold", ""),
-            "image": image,
-            "howToEarn": how_to_earn(requirement, media, group_name)
+            "thresholdLabel": threshold_label(achievement.get("threshold", ""), kind, media),
+            "image": image, "howToEarn": group_how
         })
     if group["achievements"]:
         catalog["groups"].append(group)
@@ -138,12 +158,7 @@ ASSET_ROOT.mkdir(parents=True, exist_ok=True)
 IMAGE_DEST.mkdir(parents=True, exist_ok=True)
 (ASSET_ROOT / "catalog.json").write_text(json.dumps(catalog, ensure_ascii=False), encoding="utf-8")
 (ASSET_ROOT / "catalog.js").write_text("window.GRAPH_CATALOG = " + json.dumps(catalog, ensure_ascii=False) + ";", encoding="utf-8")
-used_images = {
-    achievement["image"]
-    for group in catalog["groups"]
-    for achievement in group["achievements"]
-    if achievement["image"]
-}
+used_images = {a["image"] for g in catalog["groups"] for a in g["achievements"] if a["image"]}
 for item in IMAGE_SOURCE.iterdir():
     if item.is_file() and item.name in used_images:
         shutil.copy2(item, IMAGE_DEST / item.name)
