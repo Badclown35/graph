@@ -96,7 +96,65 @@ class UserControllerAchievementsModule extends AbstractUserControllerModule
         $achList = self::getAchievementsDefinitions();
 
         $list = $viewContext->user->getMixedUserMedia($viewContext->media);
-        $viewContext->malEntryCount = count($list);
+        $viewContext->malImportError = null;
+        $viewContext->malImportActive = false;
+        $viewContext->malImportCount = 0;
+        $viewContext->malImportUnmatched = 0;
+
+        // A MAL export is evaluated as a temporary, read-only list for this request.
+        // No imported data is written to the Graph user's collection.
+        if ($viewContext->media === Media::Anime && isset($_FILES['mal_export']) &&
+            isset($_FILES['mal_export']['error']) && $_FILES['mal_export']['error'] !== UPLOAD_ERR_NO_FILE) {
+            $upload = $_FILES['mal_export'];
+            if ($upload['error'] !== UPLOAD_ERR_OK) {
+                $viewContext->malImportError = 'The upload did not complete. Please try again.';
+            } elseif (!is_uploaded_file($upload['tmp_name']) || (int) $upload['size'] > 5 * 1024 * 1024) {
+                $viewContext->malImportError = 'Please choose a valid MAL XML or CSV export smaller than 5 MB.';
+            } else {
+                try {
+                    $rawExport = file_get_contents($upload['tmp_name']);
+                    $importRows = MalAchievementImportHelper::parse($rawExport);
+                    $viewContext->malImportCount = count($importRows);
+
+                    $ids = array_map(function ($row) {
+                        return Media::Anime . $row['mal_id'];
+                    }, $importRows);
+                    $metadataEntries = Model_MixedUserMedia::getFromIdList($ids);
+                    $metadataById = [];
+                    foreach ($metadataEntries as $entry) {
+                        $metadataById[$entry->mal_id] = $entry;
+                    }
+
+                    $importedEntries = [];
+                    foreach ($importRows as $row) {
+                        if (!isset($metadataById[$row['mal_id']])) {
+                            $viewContext->malImportUnmatched++;
+                            continue;
+                        }
+
+                        $entry = clone $metadataById[$row['mal_id']];
+                        $entry->score = $row['score'];
+                        $entry->status = $row['status'];
+                        $entry->finished_episodes = $row['progress'];
+                        $entry->finished_volumes = 0;
+                        $importedEntries[] = $entry;
+                    }
+
+                    if ($importedEntries) {
+                        Model_MixedUserMedia::attachGenres($importedEntries);
+                    }
+
+                    $list = $importedEntries;
+                    $viewContext->malImportActive = true;
+                } catch (Exception $exception) {
+                    $viewContext->malImportError = $exception->getMessage();
+                }
+            }
+        }
+
+        $viewContext->malEntryCount = $viewContext->malImportActive
+            ? $viewContext->malImportCount
+            : count($list);
         $franchiseGroups = Model_MixedUserMedia::getFranchises($list);
         $viewContext->franchiseCount = count(array_filter($franchiseGroups, function ($franchise) {
             return !empty($franchise->ownEntries[0]->franchise);
