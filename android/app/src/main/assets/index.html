@@ -45,7 +45,7 @@ function applyImportedProgress(entries,media){
    const m=String(a.threshold).match(/^(\\d+(?:\\.\\d+)?)(?:-(\\d+(?:\\.\\d+)?))?\\+?$/);
    if(!m)continue;
    const low=Number(m[1]),high=m[2]===undefined?Infinity:Number(m[2]);
-   const met=rangeMode?(value>=low&&value<=high):(value>=low);
+   const met=value>=low&&value<=high;
    if(met&&!earned.has(a.id)){earned.add(a.id);checked++}
   }
  }
