@@ -8,24 +8,94 @@
 <section class="stats"><div class="stat"><span class="num" id="groups">—</span><span>Badge groups</span></div><div class="stat"><span class="num" id="badges">—</span><span>Individual levels</span></div><div class="stat"><span class="num" id="earned">0</span><span>Marked earned</span></div></section>
 <section class="panel"><h2>Find a badge</h2><div class="controls"><input id="search" type="search" placeholder="Search badge names or requirements"><select id="media"><option value="all">Anime + Manga</option><option value="anime">Anime only</option><option value="manga">Manga only</option></select></div><div class="filters"><button class="active" data-kind="all">All</button><button data-kind="earned">Earned</button><button data-kind="genre-title">Genres</button><button data-kind="finished">Collection size</button><button data-kind="score">Scores</button><button data-kind="special">Special</button></div></section>
 <section class="toolbar"><h2 id="heading">All badges</h2><span class="small" id="shown"></span></section><section class="grid" id="cards"><div class="empty">Loading the badge catalogue…</div></section>
-<section class="panel"><h2>Import a MAL export</h2><p class="small">Import an anime XML or CSV export. This version auto-checks count, no-drop, average-score, long-entry and rewatch badges. Genre, source, franchise and release-metadata badges can be marked manually until metadata lookup is added.</p><input id="malFile" type="file" accept=".xml,.csv,text/xml,text/csv"><div class="result" id="importResult" role="status"></div></section>
-<p class="small">Original Graph badge artwork and definitions. This mobile edition omits explicitly adult-themed badge groups. Your export stays on this device.</p>
+<section class="panel"><h2>Import a MAL export</h2><p class="small">Import either your MAL anime or manga list as XML or CSV. The app detects which list you selected and keeps anime and manga counts separate. It auto-checks completed-entry, zero-dropped, average-score, long-series/long-manga and rewatch/reread badges. Genre, source, franchise, runtime and release-year badges still need title metadata, so mark those manually for now.</p><input id="malFile" type="file" accept=".xml,.csv,text/xml,text/csv"><div class="result" id="importResult" role="status"></div></section>
+<p class="small">Original Graph badge artwork and definitions. This mobile edition omits explicitly adult/sexual badge groups. Boys Love and Girls Love genre badges are included. Your export stays on this device.</p>
 </main><script src="catalog.js"></script><script>
 let catalog=window.GRAPH_CATALOG||null,kind="all";let earned=new Set();try{earned=new Set(JSON.parse(localStorage.getItem("graph-earned-badges")||"[]"))}catch(e){}
 const $=s=>document.querySelector(s);
 function classify(g){if(g.requirementType==="genre-title")return"genre-title";if(g.requirementType==="finished")return"finished";if(g.requirementType==="score")return"score";return"special"}
-function render(){if(!catalog)return;const q=$("#search").value.toLowerCase(),m=$("#media").value;let groups=catalog.groups.filter(g=>(m==="all"||g.media===m)&&(kind==="all"||(kind==="earned"?g.achievements.some(a=>earned.has(a.id)):classify(g)===kind))&&((g.name+" "+g.howToEarn+" "+g.achievements.map(a=>a.title+" "+a.description+" "+a.threshold).join(" ")).toLowerCase().includes(q)));$("#heading").textContent=kind==="all"?"All badges":kind==="genre-title"?"Genre badges":kind==="finished"?"Collection milestones":kind==="score"?"Score milestones":"Special badges";let total=groups.reduce((n,g)=>n+g.achievements.length,0);$("#shown").textContent=groups.length+" groups · "+total+" levels";$("#cards").innerHTML=groups.length?groups.map(g=>'<article class="card"><div class="top"><div><div class="level">'+g.media.toUpperCase()+' · '+g.achievements.length+' LEVELS</div><h3>'+esc(g.name)+'</h3></div></div><div class="how"><b>How to earn:</b> '+esc(g.howToEarn)+'</div>'+g.achievements.map(a=>'<div class="top" style="margin-top:12px">'+(a.image?'<img class="badge" loading="lazy" src="achievement/'+encodeURIComponent(a.image)+'" alt="">':'')+'<div><div class="level">'+esc(a.level)+'</div><h3>'+esc(a.title)+'</h3><span class="threshold">Requirement: '+esc(a.threshold)+'</span></div></div><p class="desc">'+esc(a.description)+'</p><button data-badge="'+esc(a.id)+'">'+(earned.has(a.id)?"✓ Earned — tap to undo":"＋ Mark as earned")+'</button>').join("")+'</article>').join(""):'<div class="empty">No badges match that search.</div>'}
+function render(){if(!catalog)return;const q=$("#search").value.toLowerCase(),m=$("#media").value;let groups=catalog.groups.filter(g=>(m==="all"||g.media===m)&&(kind==="all"||(kind==="earned"?g.achievements.some(a=>earned.has(a.id)):classify(g)===kind))&&((g.name+" "+g.howToEarn+" "+g.achievements.map(a=>a.title+" "+a.description+" "+a.threshold).join(" ")).toLowerCase().includes(q)));$("#heading").textContent=kind==="all"?"All badges":kind==="genre-title"?"Genre badges":kind==="finished"?"Collection milestones":kind==="score"?"Score milestones":"Special badges";let total=groups.reduce((n,g)=>n+g.achievements.length,0);$("#shown").textContent=groups.length+" groups · "+total+" levels";$("#cards").innerHTML=groups.length?groups.map(g=>'<article class="card"><div class="top"><div><div class="level">'+g.media.toUpperCase()+' · '+g.achievements.length+' LEVELS</div><h3>'+esc(g.name)+'</h3></div></div><div class="how"><b>How to earn:</b> '+esc(g.howToEarn)+'</div>'+g.achievements.map(a=>'<div class="top" style="margin-top:12px">'+(a.image?'<img class="badge" loading="lazy" src="achievement/'+encodeURIComponent(a.image)+'" alt="">':'')+'<div><div class="level">'+esc(a.level)+'</div><h3>'+esc(a.title)+'</h3><span class="threshold">Target: '+esc(a.thresholdLabel||a.threshold)+'</span></div></div><div class="how"><b>How to unlock this level:</b> '+esc(a.howToEarn||g.howToEarn)+'</div><p class="desc">'+esc(a.description)+'</p><button data-badge="'+esc(a.id)+'">'+(earned.has(a.id)?"✓ Earned — tap to undo":"＋ Mark as earned")+'</button>').join("")+'</article>').join(""):'<div class="empty">No badges match that search.</div>'}
 function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 if(catalog){const n=catalog.groups.reduce((s,g)=>s+g.achievements.length,0);$("#groups").textContent=catalog.groups.length;$("#badges").textContent=n;$("#earned").textContent=earned.size;render()}else{$("#cards").innerHTML='<div class="empty">Could not load the bundled badge catalogue.</div>'}
 $("#cards").addEventListener("click",e=>{const b=e.target.closest("[data-badge]");if(!b)return;const id=b.dataset.badge;if(earned.has(id))earned.delete(id);else earned.add(id);try{localStorage.setItem("graph-earned-badges",JSON.stringify([...earned]))}catch(e){}$("#earned").textContent=earned.size;render()});$("#search").addEventListener("input",render);$("#media").addEventListener("change",render);document.querySelectorAll("[data-kind]").forEach(b=>b.addEventListener("click",()=>{kind=b.dataset.kind;document.querySelectorAll("[data-kind]").forEach(x=>x.classList.toggle("active",x===b));render()}));
-function parseCsv(text){const rows=[];let row=[],field="",quoted=false,closed=false;for(let i=0;i<text.length;i++){const c=text[i];if(quoted){if(c==='"'&&text[i+1]==='"'){field+='"';i++}else if(c==='"'){quoted=false;closed=true}else field+=c}else if(c==='"'&&field===""){quoted=true}else if(c==="," ){row.push(field);field="";closed=false}else if(c==="\n"||c==="\r"){if(c==="\r"&&text[i+1]==="\n")i++;row.push(field);if(row.some(v=>v.trim()!==""))rows.push(row);row=[];field="";closed=false}else{if(closed)throw Error("Invalid CSV text after a quoted field.");field+=c}}if(quoted)throw Error("Unclosed quoted field in CSV.");row.push(field);if(row.some(v=>v.trim()!==""))rows.push(row);return rows}
+function parseCsv(text){const rows=[];let row=[],field="",quoted=false,closed=false;for(let i=0;i<text.length;i++){const c=text[i];if(quoted){if(c==='"'&&text[i+1]==='"'){field+='"';i++}else if(c==='"'){quoted=false;closed=true}else field+=c}else if(c==='"'&&field===""){quoted=true}else if(c===","){row.push(field);field="";closed=false}else if(c==="\\n"||c==="\\r"){if(c==="\\r"&&text[i+1]==="\\n")i++;row.push(field);if(row.some(v=>v.trim()!==""))rows.push(row);row=[];field="";closed=false}else{if(closed)throw Error("Unexpected text after a quoted CSV field.");field+=c}}if(quoted)throw Error("Unclosed quoted field in CSV.");row.push(field);if(row.some(v=>v.trim()!==""))rows.push(row);return rows}
 function readNumber(value){const n=Number(value);return Number.isFinite(n)?n:0}
-function applyImportedProgress(entries){const completed=entries.filter(e=>e.status==="2"||e.status.toLowerCase()==="completed").length;const dropped=entries.filter(e=>e.status==="4"||e.status.toLowerCase()==="dropped").length;const eligible=entries.filter(e=>!["6","planned","plan to watch"].includes(e.status.toLowerCase()));const rated=eligible.map(e=>e.score).filter(n=>n>0);const mean=rated.length?rated.reduce((a,b)=>a+b,0)/rated.length:null;const longEntries=eligible.filter(e=>e.progress>99).length;const rewatches=eligible.reduce((sum,e)=>sum+e.rewatches,0);let checked=0;
-for(const g of catalog.groups){if(g.media!=="anime")continue;let value=null;let rangeMode=false;if(g.requirementType==="finished")value=completed;else if(g.requirementType==="dropped-0")value=dropped===0?completed:null;else if(g.requirementType==="score"){value=mean;rangeMode=true}else if(g.requirementType==="episode-long")value=longEntries;else if(g.requirementType==="re")value=rewatches;if(value===null)continue;
-for(const a of g.achievements){const m=String(a.threshold).match(/^(\d+(?:\.\d+)?)(?:-(\d+(?:\.\d+)?))?\+?$/);if(!m)continue;const low=Number(m[1]),high=m[2]===undefined?Infinity:Number(m[2]);const met=rangeMode?(value>=low&&value<=high):(value>=low);if(met&&!earned.has(a.id)){earned.add(a.id);checked++}}}
-try{localStorage.setItem("graph-earned-badges",JSON.stringify([...earned]))}catch(e){}$("#earned").textContent=earned.size;render();return {completed,dropped,mean,longEntries,rewatches,checked}}
-$("#malFile").addEventListener("change",async()=>{const f=$("#malFile").files[0];if(!f)return;try{if(f.size>5*1024*1024)throw Error("File exceeds 5 MB.");const raw=await f.text();let entries=[];
-if(/\.xml$/i.test(f.name)||raw.trim().startsWith("<")){const doc=new DOMParser().parseFromString(raw,"application/xml");if(doc.querySelector("parsererror"))throw Error("Invalid XML export.");entries=[...doc.querySelectorAll("anime")].map(x=>({id:x.querySelector("series_animedb_id,anime_id")?.textContent||"",status:x.querySelector("my_status")?.textContent||"",score:readNumber(x.querySelector("my_score")?.textContent),progress:readNumber(x.querySelector("my_watched_episodes")?.textContent),rewatches:readNumber(x.querySelector("my_times_watched")?.textContent)}))}
-else{const rows=parseCsv(raw);if(rows.length<2)throw Error("CSV has no entries.");const headers=rows.shift().map(x=>x.trim().toLowerCase());const col=(...names)=>{for(const n of names){const i=headers.indexOf(n);if(i>=0)return i}return -1};const id=col("anime_id","series_animedb_id","mal_id"),status=col("my_status"),score=col("my_score"),progress=col("my_watched_episodes"),rewatches=col("my_times_watched");if(id<0)throw Error("MAL ID column not found.");entries=rows.filter(r=>(r[id]||"").trim()!=="").map(r=>({id:r[id],status:status<0?"":String(r[status]||""),score:readNumber(r[score]||0),progress:readNumber(r[progress]||0),rewatches:readNumber(r[rewatches]||0)}))}
-if(!entries.length)throw Error("No anime entries found.");const ids=new Set();for(const e of entries){if(ids.has(e.id))throw Error("Duplicate MAL ID: "+e.id);ids.add(e.id)}const result=applyImportedProgress(entries);const average=result.mean===null?"not available":result.mean.toFixed(2);$("#importResult").textContent="Imported "+entries.length+" entries. Completed: "+result.completed+" · Dropped: "+result.dropped+" · Average score: "+average+" · Long entries: "+result.longEntries+" · Rewatches: "+result.rewatches+". Auto-marked "+result.checked+" newly earned badge levels. Other metadata-based badges remain in the manual checklist."}catch(e){$("#importResult").textContent="Import error: "+e.message}});
+function normalizeStatus(value){const s=String(value||"").trim().toLowerCase();return ({"watching":"1","reading":"1","completed":"2","on-hold":"3","on hold":"3","dropped":"4","plan to watch":"6","plan to read":"6","planned":"6"})[s]||s}
+function applyImportedProgress(entries,media){
+ const completed=entries.filter(e=>normalizeStatus(e.status)==="2").length;
+ const dropped=entries.filter(e=>normalizeStatus(e.status)==="4").length;
+ const eligible=entries.filter(e=>normalizeStatus(e.status)!=="6");
+ const rated=eligible.map(e=>e.score).filter(n=>n>0);
+ const mean=rated.length?rated.reduce((a,b)=>a+b,0)/rated.length:null;
+ const longAnime=eligible.filter(e=>e.progress>99).length;
+ const longManga=eligible.filter(e=>e.volumes>19).length;
+ const rereads=eligible.reduce((sum,e)=>sum+e.rewatches,0);
+ let checked=0;
+ for(const g of catalog.groups){
+  if(g.media!==media)continue;
+  let value=null,rangeMode=false;
+  if(g.requirementType==="finished")value=completed;
+  else if(g.requirementType==="dropped-0")value=dropped===0?completed:null;
+  else if(g.requirementType==="score"){value=mean;rangeMode=true}
+  else if(g.requirementType==="episode-long")value=longAnime;
+  else if(g.requirementType==="volume-long")value=longManga;
+  else if(g.requirementType==="re")value=rereads;
+  if(value===null)continue;
+  for(const a of g.achievements){
+   const m=String(a.threshold).match(/^(\\d+(?:\\.\\d+)?)(?:-(\\d+(?:\\.\\d+)?))?\\+?$/);
+   if(!m)continue;
+   const low=Number(m[1]),high=m[2]===undefined?Infinity:Number(m[2]);
+   const met=rangeMode?(value>=low&&value<=high):(value>=low);
+   if(met&&!earned.has(a.id)){earned.add(a.id);checked++}
+  }
+ }
+ try{localStorage.setItem("graph-earned-badges",JSON.stringify([...earned]))}catch(e){}
+ $("#earned").textContent=earned.size;render();
+ return {completed,dropped,mean,longAnime,longManga,rereads,checked};
+}
+$("#malFile").addEventListener("change",async()=>{
+ const f=$("#malFile").files[0];if(!f)return;
+ try{
+  if(f.size>5*1024*1024)throw Error("File exceeds 5 MB.");
+  const raw=await f.text();let entries=[],media="";
+  if(/\\.xml$/i.test(f.name)||raw.trim().startsWith("<")){
+   const doc=new DOMParser().parseFromString(raw,"application/xml");
+   if(doc.querySelector("parsererror"))throw Error("Invalid XML export.");
+   const animeNodes=[...doc.querySelectorAll("anime")],mangaNodes=[...doc.querySelectorAll("manga")];
+   if(animeNodes.length&&mangaNodes.length)throw Error("This file contains both anime and manga. Export and import them separately.");
+   media=mangaNodes.length?"manga":"anime";
+   const nodes=media==="anime"?animeNodes:mangaNodes;
+   entries=nodes.map(x=>({
+    id:x.querySelector("series_animedb_id,anime_id,manga_mangadb_id,manga_id")?.textContent?.trim()||"",
+    status:x.querySelector("my_status")?.textContent||"",
+    score:readNumber(x.querySelector("my_score")?.textContent),
+    progress:readNumber(x.querySelector("my_watched_episodes,my_read_chapters")?.textContent),
+    volumes:readNumber(x.querySelector("my_read_volumes")?.textContent),
+    rewatches:readNumber(x.querySelector("my_times_watched,my_times_reread")?.textContent)
+   }));
+  }else{
+   const rows=parseCsv(raw);if(rows.length<2)throw Error("CSV has no entries.");
+   const headers=rows.shift().map(x=>x.trim().toLowerCase());
+   const col=(...names)=>{for(const n of names){const i=headers.indexOf(n);if(i>=0)return i}return -1};
+   const animeId=col("anime_id","series_animedb_id"),mangaId=col("manga_id","manga_mangadb_id");
+   if(animeId<0&&mangaId<0)throw Error("Could not find an anime_id or manga_id column in this CSV.");
+   media=mangaId>=0?"manga":"anime";
+   const id=media==="manga"?mangaId:animeId,status=col("my_status"),score=col("my_score");
+   const progress=media==="manga"?col("my_read_chapters"):col("my_watched_episodes");
+   const volumes=col("my_read_volumes");
+   const rewatches=media==="manga"?col("my_times_reread"):col("my_times_watched");
+   entries=rows.filter(r=>(r[id]||"").trim()!=="").map(r=>({
+    id:String(r[id]).trim(),status:status<0?"":String(r[status]||""),
+    score:readNumber(r[score]||0),progress:readNumber(r[progress]||0),
+    volumes:readNumber(r[volumes]||0),rewatches:readNumber(r[rewatches]||0)
+   }));
+  }
+  if(!entries.length)throw Error("No "+(media||"anime or manga")+" entries found. Check that this is a MAL list export.");
+  const ids=new Set();for(const e of entries){if(!e.id)throw Error("An entry is missing its MAL ID.");if(ids.has(e.id))throw Error("Duplicate MAL ID: "+e.id);ids.add(e.id)}
+  const result=applyImportedProgress(entries,media);
+  const average=result.mean===null?"not available":result.mean.toFixed(2);
+  const longCount=media==="anime"?result.longAnime:result.longManga;
+  $("#importResult").textContent="Imported "+entries.length+" "+media+" entries. Completed: "+result.completed+" · Dropped: "+result.dropped+" · Average score: "+average+" · "+(media==="anime"?"Entries over 99 watched episodes: ":"Manga entries over 19 read volumes: ")+longCount+" · "+(media==="anime"?"Rewatches: ":"Rereads: ")+result.rereads+". Auto-marked "+result.checked+" newly earned "+media+" badge levels. Metadata-based badges remain manual.";
+ }catch(e){$("#importResult").textContent="Import error: "+e.message}
+});
 </script></body></html>
