@@ -91,6 +91,8 @@ class UserControllerAchievementsModule extends AbstractUserControllerModule
         $achList = self::getAchievementsDefinitions();
 
         $list = $viewContext->user->getMixedUserMedia($viewContext->media);
+        $viewContext->malEntryCount = count($list);
+        $viewContext->franchiseCount = count(Model_MixedUserMedia::getFranchises($list));
         $listFinished = UserMediaFilter::doFilter($list, UserMediaFilter::finished());
         $listNonPlanned = UserMediaFilter::doFilter($list, UserMediaFilter::nonPlanned());
         $listDropped = UserMediaFilter::doFilter($list, UserMediaFilter::dropped());
