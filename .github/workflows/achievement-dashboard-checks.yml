@@ -33,3 +33,6 @@ jobs:
 
       - name: Check achievement JavaScript
         run: node --check public_html/media/js/user/achievements.js
+
+      - name: Validate achievement definitions and original badge assets
+        run: php tests/achievement-definitions.php
