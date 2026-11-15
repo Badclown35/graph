@@ -89,11 +89,7 @@ def how_to_earn(requirement, media, group_name):
     if kind == "dropped-0":
         return f"{verb.capitalize()} the required number of {unit} while keeping your Dropped count at zero. Even one dropped entry blocks this group."
     if kind == "genre-title":
-        genres = requirement.get("genre", [])
-        if not isinstance(genres, list):
-            genres = [genres]
-        names = [GENRES.get(g, "Graph genre " + str(g)) for g in genres]
-        return f"{verb.capitalize()} entries counted by Graph's original genre rule for {group_name}. Genre filter: {', '.join(names) if names else 'source-defined filter'}. The level's target is the number shown on its card."
+        return f"{verb.capitalize()} entries that Graph's original metadata classifies for the {group_name} category. The exact filter is inherited from Graph's source definition; the target is the number shown on the level card."
     if kind == "title":
         return f"{verb.capitalize()} the exact MAL title(s) listed in Graph's original definition. Similar titles or another season do not count unless separately listed."
     if kind == "source-title":
@@ -109,7 +105,7 @@ def how_to_earn(requirement, media, group_name):
     if kind == "episode-long":
         return "Have the required number of eligible anime entries with more than 99 watched episodes on each entry."
     if kind == "volume-long":
-        return "Read more than 19 volumes of each qualifying manga entry. Your MAL export must include read-volume progress."
+        return "Have the required number of manga entries with more than 19 volumes read on each entry. Your MAL export must include read-volume progress."
     if kind == "franchise":
         return "Complete at least two entries in a franchise whose combined episode count is over 199. Franchise and episode data come from Graph's metadata."
     if kind == "novel":
