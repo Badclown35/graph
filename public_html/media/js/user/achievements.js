@@ -1,37 +1,91 @@
 $(function()
 {
-	$('.entries-trigger').click(function(e)
-	{
-		var target = $(this).parents('.achi-entry').find('.entries-wrapper');
-		toggleEntries(target, [], false);
-		e.preventDefault();
-	});
-	$('.previous-msg a').click(function(e)
-	{
-		var targets = $(this).parents('.section').find('.achi-entry.hidden');
-		targets.each(function()
-		{
-			var target = $(this);
-			if (target.is(':hidden'))
-			{
-				target.find('.entries-wrapper').hide();
-				target.show();
-				target.css('height', $(this).height());
-				target.hide();
-				target.slideDown(function()
-				{
-					target.css('height', '');
-				});
-			}
-			else
-			{
-				target.slideUp();
-			}
-		});
-		$(this).fadeOut('fast', function()
-		{
-			$(this).text($(this).text() == 'Show them' ? 'Hide them' : 'Show them').fadeIn('fast');
-		});
-		e.preventDefault();
-	});
+    var dashboard = $('.achi-dashboard');
+    var activeFilter = 'all';
+    var showPrevious = false;
+
+    function applyAchievementFilters()
+    {
+        var query = $.trim(dashboard.find('.achi-search__input').val() || '').toLowerCase();
+        var visibleCount = 0;
+
+        dashboard.find('.achi-entry').each(function()
+        {
+            var entry = $(this);
+            var state = entry.attr('data-achievement-state');
+            var matchesFilter = activeFilter === 'all'
+                ? (state !== 'previous' || showPrevious)
+                : (activeFilter === 'previous' ? state === 'previous' : state === 'current');
+            var matchesSearch = !query || entry.text().toLowerCase().indexOf(query) !== -1;
+            var visible = matchesFilter && matchesSearch;
+
+            entry.toggleClass('is-filtered-out', !visible);
+            entry.toggle(visible);
+
+            if (visible)
+            {
+                visibleCount++;
+            }
+        });
+
+        dashboard.find('.achi-no-results').prop('hidden', visibleCount !== 0);
+    }
+
+    dashboard.find('.achi-filter').on('click', function()
+    {
+        var button = $(this);
+        activeFilter = button.attr('data-filter');
+
+        dashboard.find('.achi-filter')
+            .removeClass('is-active')
+            .attr('aria-pressed', 'false');
+        button.addClass('is-active').attr('aria-pressed', 'true');
+
+        if (activeFilter === 'previous')
+        {
+            showPrevious = true;
+        }
+
+        applyAchievementFilters();
+    });
+
+    dashboard.find('.achi-search__input').on('input', applyAchievementFilters);
+
+    dashboard.find('.achi-previous-toggle').on('click', function(e)
+    {
+        e.preventDefault();
+        showPrevious = !showPrevious;
+
+        var link = $(this);
+        link.text(showPrevious ? 'Hide previous levels' : 'Show previous levels');
+        link.attr('aria-expanded', showPrevious ? 'true' : 'false');
+
+        if (activeFilter === 'previous' && !showPrevious)
+        {
+            activeFilter = 'all';
+            dashboard.find('.achi-filter')
+                .removeClass('is-active')
+                .attr('aria-pressed', 'false');
+            dashboard.find('.achi-filter[data-filter="all"]')
+                .addClass('is-active')
+                .attr('aria-pressed', 'true');
+        }
+
+        applyAchievementFilters();
+    });
+
+    dashboard.on('click', '.entries-trigger, .entries-trigger-button', function(e)
+    {
+        var target = $(this).closest('.achi-entry').find('.entries-wrapper');
+        toggleEntries(target, [], false);
+        e.preventDefault();
+    });
+
+    dashboard.on('click', '.entries-wrapper .close', function(e)
+    {
+        $(this).closest('.entries-wrapper').hide();
+        e.preventDefault();
+    });
+
+    applyAchievementFilters();
 });
