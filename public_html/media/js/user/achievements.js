@@ -81,11 +81,6 @@ $(function()
         e.preventDefault();
     });
 
-    dashboard.on('click', '.entries-wrapper .close', function(e)
-    {
-        $(this).closest('.entries-wrapper').hide();
-        e.preventDefault();
-    });
 
     applyAchievementFilters();
 });
