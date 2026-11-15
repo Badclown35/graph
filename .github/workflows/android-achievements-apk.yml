@@ -33,6 +33,18 @@ jobs:
       - name: Generate complete badge catalogue and copy original artwork
         run: python scripts/build-android-catalog.py
 
+      - name: Check bundled catalogue and app JavaScript
+        run: |
+          node --check android/app/src/main/assets/catalog.js
+          python - <<'PY'
+          import re
+          from pathlib import Path
+          html = Path("android/app/src/main/assets/index.html").read_text(encoding="utf-8")
+          scripts = re.findall(r"<script(?:\\s[^>]*)?>(.*?)</script>", html, re.S)
+          Path("/tmp/graph-achievements.js").write_text("\\n".join(scripts), encoding="utf-8")
+          PY
+          node --check /tmp/graph-achievements.js
+
       - name: Set up JDK
         uses: actions/setup-java@v4
         with:
