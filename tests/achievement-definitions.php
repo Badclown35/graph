@@ -20,7 +20,10 @@ $errors = [];
 
 foreach ($definitionFiles as $file) {
     try {
-        $definition = json_decode(file_get_contents($file), false, 512, JSON_THROW_ON_ERROR);
+        // Match the comment stripping used by TextHelper::loadJson before decoding.
+        $contents = file_get_contents($file);
+        $contents = preg_replace(['#//(.*)$#m', '#\\#(.*)$#m'], '', $contents);
+        $definition = json_decode($contents, false, 512, JSON_THROW_ON_ERROR);
     } catch (Throwable $error) {
         $errors[] = basename($file) . ': invalid JSON (' . $error->getMessage() . ')';
         continue;
