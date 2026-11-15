@@ -378,3 +378,47 @@ h3 {
 .achi-dashboard__stats {
     grid-template-columns: repeat(auto-fit, minmax(115px, 1fr));
 }
+
+
+.achi-mal-import {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    margin: 22px 0;
+    padding: 18px;
+    border: 1px solid rgba(130, 145, 180, .28);
+    border-radius: 12px;
+    background: rgba(130, 145, 180, .06);
+}
+.achi-mal-import > div {
+    flex: 1 1 100%;
+}
+.achi-mal-import h3 {
+    margin: 0 0 5px;
+}
+.achi-mal-import p {
+    margin: 0;
+}
+.achi-mal-import__file {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    max-width: 100%;
+}
+.achi-mal-import__file input {
+    max-width: 100%;
+}
+.achi-mal-import__submit {
+    border: 0;
+    border-radius: 7px;
+    padding: 10px 15px;
+    cursor: pointer;
+}
+.achi-mal-import__message {
+    flex: 1 1 100%;
+    font-size: .92em;
+}
+.achi-mal-import__message--error {
+    color: #c64c58;
+}
