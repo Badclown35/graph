@@ -13,9 +13,19 @@ class MalAchievementImportHelper
             throw new InvalidArgumentException('The MAL export is empty.');
         }
 
-        return ltrim($raw) !== '' && strpos(ltrim($raw), '<') === 0
+        $rows = ltrim($raw) !== '' && strpos(ltrim($raw), '<') === 0
             ? self::parseXml($raw)
             : self::parseCsv($raw);
+
+        $seenIds = [];
+        foreach ($rows as $row) {
+            if (isset($seenIds[$row['mal_id']])) {
+                throw new InvalidArgumentException('The MAL export contains a duplicate anime ID: ' . $row['mal_id'] . '.');
+            }
+            $seenIds[$row['mal_id']] = true;
+        }
+
+        return $rows;
     }
 
     private static function parseXml($raw)
@@ -62,6 +72,7 @@ class MalAchievementImportHelper
         $row = [];
         $field = '';
         $quoted = false;
+        $closedQuote = false;
         $length = strlen($raw);
 
         for ($i = 0; $i < $length; $i++) {
@@ -70,13 +81,22 @@ class MalAchievementImportHelper
                 $field .= '"';
                 $i++;
             } elseif ($char === '"') {
-                $quoted = !$quoted;
+                if ($quoted) {
+                    $quoted = false;
+                    $closedQuote = true;
+                } elseif ($field === '' && !$closedQuote) {
+                    $quoted = true;
+                } else {
+                    throw new InvalidArgumentException('The MAL CSV contains an invalid quotation mark.');
+                }
             } elseif ($char === ',' && !$quoted) {
                 $row[] = $field;
                 $field = '';
+                $closedQuote = false;
             } elseif (($char === "\n" || $char === "\r") && !$quoted) {
                 $row[] = $field;
                 $field = '';
+                $closedQuote = false;
                 if (count(array_filter($row, 'strlen'))) {
                     $records[] = $row;
                 }
@@ -85,8 +105,15 @@ class MalAchievementImportHelper
                     $i++;
                 }
             } else {
+                if ($closedQuote) {
+                    throw new InvalidArgumentException('The MAL CSV contains unexpected text after a quoted field.');
+                }
                 $field .= $char;
             }
+        }
+
+        if ($quoted) {
+            throw new InvalidArgumentException('The MAL CSV contains an unfinished quoted field.');
         }
 
         $row[] = $field;
