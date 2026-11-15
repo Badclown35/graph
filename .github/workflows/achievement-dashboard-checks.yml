@@ -36,3 +36,9 @@ jobs:
 
       - name: Validate achievement definitions and original badge assets
         run: php tests/achievement-definitions.php
+
+      - name: Test read-only MAL import parser
+        run: php tests/mal-achievement-import.php
+
+      - name: Lint MAL import helper
+        run: php -l src/Helpers/MalAchievementImportHelper.php
