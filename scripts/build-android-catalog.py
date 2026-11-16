@@ -88,14 +88,14 @@ def how_to_earn(requirement, media, group_name):
     if kind == "genre-title":
         genre_id = requirement.get("genre")
         genre_ids = genre_id if isinstance(genre_id, list) else ([genre_id] if genre_id is not None else [])
-        genre_names = {40:"Psychological", 13:"Historical", 14:"Horror", 22:"Romance", 28:"Slice of Life", 10:"Fantasy", 7:"Mystery", 24:"Sci-Fi", 30:"Sports", 18:"Music", 17:"Mecha", 32:"Vampire", 2:"Adventure", 1:"Action", 4:"Comedy", 8:"Drama"}
-        genres = [genre_names.get(x, f"genre ID {x}") for x in genre_ids]
-        genre = " / ".join(genres) if genres else group_name
+        genre_names = {40:"Psychological", 13:"Historical", 14:"Horror", 22:"Romance", 36:"Slice of Life", 10:"Fantasy", 7:"Mystery", 24:"Sci-Fi", 30:"Sports", 18:"Music", 17:"Mecha", 32:"Vampire", 2:"Adventure", 1:"Action", 4:"Comedy", 8:"Drama", 26:"Girls Love", 28:"Boys Love", 66:"Magical Girl"}
+        genres = [genre_names.get(x, group_name) for x in genre_ids]
+        genre = " / ".join(dict.fromkeys(genres)) if genres else group_name
         titles = requirement.get("titles", [])
         if genre_ids and titles:
-            return f"Finish {unit} tagged {genre} (MAL genre ID(s): {', '.join(map(str, genre_ids))}), OR finish the extra titles in Graph's original rule. On MAL, open each title and check its Genres/Theme tags. Only entries marked Completed count; reach the target shown on this level."
+            return f"Finish {unit} tagged {genre})}), OR finish the extra titles in Graph's original rule. On MAL, open each title and check its Genres/Theme tags. Only entries marked Completed count; reach the target shown on this level."
         if genre_ids:
-            return f"Finish {unit} tagged {genre} (MAL genre ID(s): {', '.join(map(str, genre_ids))}). On MAL, open each title and check its Genres/Theme tags; only entries marked Completed count. Reach the target shown on this level."
+            return f"Finish {unit} tagged {genre})}). On MAL, open each title and check its Genres/Theme tags; only entries marked Completed count. Reach the target shown on this level."
         if titles:
             return f"Finish the exact titles included in Graph's original rule. Match them by MAL ID in the source definition; only Completed entries count. Reach the target shown on this level."
         return f"Finish entries matching the {group_name} rule. Only Completed entries count; reach the target shown on this level."
