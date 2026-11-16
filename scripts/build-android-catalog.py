@@ -101,6 +101,8 @@ def how_to_earn(requirement, media, group_name):
         return f"{verb.capitalize()} the exact MAL title(s) listed in Graph's original definition. Similar titles or another season do not count unless separately listed."
     if kind == "source-title":
         source_ids = requirement.get("source", [])
+        if isinstance(source_ids, int):
+            source_ids = [source_ids]
         source_names = {1:"Original",2:"Manga",3:"4-koma manga",4:"Web manga",5:"Digital manga",6:"Novel",7:"Light novel",8:"Visual novel",9:"Game",10:"Music",11:"Picture book",12:"Other"}
         sources = ", ".join(source_names.get(x, f"source ID {x}") for x in source_ids) or "the source type stated by Graph"
         return f"Finish {unit} whose MAL Source field is {sources}. Open the title's MAL page and check Information → Source. Only Completed entries count; reach the target shown on this level."
