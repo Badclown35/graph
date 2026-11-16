@@ -45,9 +45,11 @@ function applyImportedProgress(entries,media){
   else if(g.requirementType==="re")value=rereads;
   if(value===null)continue;
   for(const a of g.achievements){
-   const m=String(a.threshold).match(/^(\\d+(?:\\.\\d+)?)(?:-(\\d+(?:\\.\\d+)?))?\\+?$/);
-   if(!m)continue;
-   const low=Number(m[1]),high=m[2]===undefined?Infinity:Number(m[2]);
+   const threshold=String(a.threshold);
+   const range=threshold.match(/^([0-9.]+)(?:\\.\\.|-)([0-9.]+)$/);
+   const open=threshold.match(/^([0-9.]+)\\+$/);
+   if(!range&&!open)continue;
+   const low=Number((range||open)[1]),high=range?Number(range[2]):Infinity;
    const met=value>=low&&value<=high;
    progressLines.push({group:g.name,title:a.title,level:a.level,target:a.thresholdLabel||a.threshold,value,met});
    if(met&&!earned.has(a.id)){earned.add(a.id);checked++;newlyEarned.push({group:g.name,title:a.title,level:a.level,target:a.thresholdLabel||a.threshold})}
@@ -126,7 +128,7 @@ $("#malFile").addEventListener("change",async()=>{
   const longCount=media==="anime"?result.longAnime:result.longManga;
   const allEarned=catalog.groups.filter(g=>g.media===media).flatMap(g=>g.achievements.filter(a=>earned.has(a.id)).map(a=>"✓ "+g.name+" — "+a.level+": "+a.title));
   const earnedLines=allEarned.length?allEarned.join("\\n"):"No badges are currently marked earned for this list.";
-  const progressLines=result.progressLines.map(p=>(p.met?"✓ ":"○ ")+p.group+" — "+p.level+": "+p.title+" ("+p.value+(p.group.toLowerCase().includes("score")?"/10":"")+"/"+p.target+")");
+  const progressLines=result.progressLines.map(p=>{const score=p.group.toLowerCase().includes("score");const threshold=String(p.target);const minimum=(threshold.match(/^([0-9.]+)/)||[])[1]||threshold;const current=score?Number(p.value).toFixed(2)+"/10":p.value+"/"+minimum+(threshold.includes("+")?"+":"");return (p.met?"✓ ":"○ ")+p.group+" — "+p.level+": "+p.title+" ("+current+"; target "+threshold.replace("-", "–").replace("..","–")+")"});
   const scoreNote=result.mean===null?"Average score unavailable.":("Average score "+result.mean.toFixed(2)+"/10; High Score starts at 8.5.");
   const metadataNote="Metadata badges (genres, source, franchise, release period and runtime) need extra title metadata. Check each card for its exact rule; they are not guessed from the export.";
   $("#importResult").textContent="IMPORT COMPLETE\\n"+entries.length+" "+media+" entries · Completed: "+result.completed+" · Dropped: "+result.dropped+" · "+scoreNote+"\\n"+(media==="anime"?"Long-series entries (>99 watched episodes): ":"Long-manga entries (>19 read volumes): ")+longCount+" · "+(media==="anime"?"Rewatches: ":"Rereads: ")+result.rereads+"\\n\\nCURRENTLY EARNED ("+allEarned.length+")\\n"+earnedLines+"\\n\\nAUTO-CHECKED BADGE PROGRESS\\n"+(progressLines.length?progressLines.join("\\n"):"No numeric progress rules were available for this list.")+"\\n\\nMETADATA BADGES\\n"+metadataNote;
