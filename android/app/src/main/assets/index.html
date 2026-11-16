@@ -132,4 +132,5 @@ $("#malFile").addEventListener("change",async()=>{
   $("#importResult").textContent="IMPORT COMPLETE\\n"+entries.length+" "+media+" entries · Completed: "+result.completed+" · Dropped: "+result.dropped+" · "+scoreNote+"\\n"+(media==="anime"?"Long-series entries (>99 watched episodes): ":"Long-manga entries (>19 read volumes): ")+longCount+" · "+(media==="anime"?"Rewatches: ":"Rereads: ")+result.rereads+"\\n\\nCURRENTLY EARNED ("+allEarned.length+")\\n"+earnedLines+"\\n\\nAUTO-CHECKED BADGE PROGRESS\\n"+(progressLines.length?progressLines.join("\\n"):"No numeric progress rules were available for this list.")+"\\n\\nMETADATA BADGES\\n"+metadataNote;
  }catch(e){$("#importResult").textContent="Import error: "+e.message}
 });
-</script></body></html>
+</script><!-- APK rebuild trigger: includes earned-badge and progress import report -->
+</body></html>
