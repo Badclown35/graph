@@ -122,7 +122,7 @@ $("#malFile").addEventListener("change",async()=>{
   const result=applyImportedProgress(entries,media);
   const average=result.mean===null?"not available":result.mean.toFixed(2);
   const longCount=media==="anime"?result.longAnime:result.longManga;
-  const earnedLines=result.newlyEarned.length?result.newlyEarned.map(b=>"✓ "+b.group+" — "+b.level+": "+b.title+" ("+b.target+")").join("\\n"):"No new automatically verified badges this import.";
+  const earnedLines=result.newlyEarned.length?result.newlyEarned.map(b=>"✓ "+b.group+" — "+b.level+": "+b.title+" ("+b.target+")").join("\n"):"No new automatically verified badges this import.";
   const scoreNote=result.mean===null?"Average score unavailable.":("Average score "+result.mean.toFixed(2)+"/10; the High Score badge starts at 8.5.");
   const progressNote="Completed-entry badge starts at 100; you have "+result.completed+"/100.";
   $("#importResult").textContent="IMPORT COMPLETE\\n"+entries.length+" "+media+" entries · Completed: "+result.completed+" · Dropped: "+result.dropped+" · "+scoreNote+"\\n"+(media==="anime"?"Long-series entries (>99 watched episodes): ":"Long-manga entries (>19 read volumes): ")+longCount+" · "+(media==="anime"?"Rewatches: ":"Rereads: ")+result.rereads+"\\n\\nBADGES EARNED FROM THIS IMPORT\\n"+earnedLines+"\\n\\nYOUR NEXT CHECKS\\n"+progressNote+"\\nMetadata badges (genres, source, franchise, release period and runtime) cannot be verified from a basic MAL export alone. Their cards explain the exact MAL tag/source field or title rule to check; mark a level earned once your completed entries meet its target.";
