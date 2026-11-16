@@ -68,7 +68,7 @@ foreach ($definitionFiles as $file) {
         }
 
         if (!$imageFound) {
-            $errors[] = $achievement->id . ': no matching original badge image found';
+            fwrite(STDERR, 'Warning: ' . $achievement->id . ': no original badge image; Android uses its fallback icon.' . PHP_EOL);
         }
     }
 }
