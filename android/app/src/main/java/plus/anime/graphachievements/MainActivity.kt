@@ -99,7 +99,7 @@ class MainActivity : Activity() {
             val address = "https://myanimelist.net/$listPath/$encodedUsername/load.json?status=7&offset=$offset"
             val body = request(address)
             val rows = try {
-                JSONArray(body.removePrefix("\uFEFF").trim())
+                JSONArray(body.removePrefix("\uFEFF").removePrefix("<?xml encoding=\"utf-8\"?>").trim())
             } catch (_: Exception) {
                 throw IllegalStateException("MAL returned an unexpected $listPath response. Its public-list format may have changed.")
             }
