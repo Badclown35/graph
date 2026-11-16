@@ -59,6 +59,30 @@ if (Config::$googleAnalyticsEnabled) {
 <?php
 }
 ?>
+
+<style>
+/* Graph's compact, hand-built mark and optional ambient soundtrack */
+#header #logo a.graph-brand {
+  display:inline-flex; align-items:center; gap:9px; width:auto; height:38px;
+  background:none; color:#25213b; text-decoration:none; font-weight:700;
+  letter-spacing:-.04em; font-size:1.12em; vertical-align:middle;
+}
+#header #logo a.graph-brand svg { width:34px; height:34px; flex:none; display:block; }
+#header #logo a.graph-brand span { display:inline !important; }
+#graph-audio-toggle {
+  position:fixed; right:18px; bottom:18px; z-index:9999;
+  display:inline-flex; align-items:center; gap:8px; padding:10px 14px;
+  border:1px solid rgba(95,75,170,.28); border-radius:999px;
+  background:rgba(255,255,255,.96); color:#34265f; font:600 13px/1.2 inherit;
+  box-shadow:0 5px 20px rgba(30,20,60,.14); cursor:pointer;
+}
+#graph-audio-toggle:hover { background:#f3efff; }
+#graph-audio-toggle:focus-visible { outline:3px solid #8b6ee8; outline-offset:3px; }
+#graph-audio-toggle .audio-dot { width:8px; height:8px; border-radius:50%; background:#aaa; }
+#graph-audio-toggle[aria-pressed="true"] .audio-dot { background:#6b50c8; box-shadow:0 0 0 3px #e9e1ff; }
+@media (max-width:600px) { #graph-audio-toggle { right:12px; bottom:12px; } }
+@media (prefers-reduced-motion: reduce) { #graph-audio-toggle { transition:none; } }
+</style>
 </head>
 <body>
 <div id="notice-wrapper">
@@ -86,7 +110,12 @@ if (!$viewContext->headerDisabled) {
 <div class="main-wrapper">
 <form action="<?php echo IndexControllerSearchModule::url(); ?>" method="post" class="waitable search">
 <div id="logo">
-<a href="<?php echo IndexControllerIndexModule::url(); ?>"><span><?php echo Config::$title; ?></span></a>
+<a class="graph-brand" href="<?php echo IndexControllerIndexModule::url(); ?>" aria-label="<?php echo Config::$title; ?>">
+<svg viewBox="0 0 40 40" role="img" aria-hidden="true">
+  <rect x="1" y="1" width="38" height="38" rx="11" fill="#6246c7"/>
+  <path d="M10 27V21h5v6M18 27V15h5v12M26 27V10h5v17" fill="#fff" rx="1"/>
+  <path d="M20 7.2l1.35 2.7 3 .44-2.17 2.12.51 2.99L20 14.04l-2.69 1.41.51-2.99-2.17-2.12 3-.44z" fill="#f6cf68"/>
+</svg><span><?php echo Config::$title; ?></span></a>
 <div class="sep"></div>
 </div>
 <?php
@@ -146,5 +175,65 @@ self::renderView();
 </div>
 </div>
 <span id="preloader"></span>
+<button id="graph-audio-toggle" type="button" aria-pressed="false" aria-label="Turn background music on">
+  <span class="audio-dot" aria-hidden="true"></span><span class="audio-label">Music off</span>
+</button>
+<script>
+(function () {
+  var button = document.getElementById('graph-audio-toggle');
+  if (!button) return;
+  var context = null, master = null, timer = null, step = 0;
+  var notes = [261.63, 329.63, 392.00, 329.63, 293.66, 349.23, 440.00, 349.23];
+  function playNote() {
+    if (!context || !master || context.state !== 'running') return;
+    var now = context.currentTime;
+    var osc = context.createOscillator();
+    var gain = context.createGain();
+    osc.type = 'sine';
+    osc.frequency.value = notes[step % notes.length];
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.linearRampToValueAtTime(0.035, now + 0.18);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 1.05);
+    osc.connect(gain); gain.connect(master);
+    osc.start(now); osc.stop(now + 1.08);
+    step++;
+  }
+  function setButton(on) {
+    button.setAttribute('aria-pressed', on ? 'true' : 'false');
+    button.querySelector('.audio-label').textContent = on ? 'Music on' : 'Music off';
+    button.setAttribute('aria-label', on ? 'Turn background music off' : 'Turn background music on');
+  }
+  button.addEventListener('click', function () {
+    var turningOn = button.getAttribute('aria-pressed') !== 'true';
+    if (turningOn) {
+      var AudioContextClass = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContextClass) {
+        button.querySelector('.audio-label').textContent = 'Audio unavailable';
+        return;
+      }
+      if (!context) {
+        context = new AudioContextClass();
+        master = context.createGain();
+        master.gain.value = 0.22;
+        master.connect(context.destination);
+      }
+      context.resume().then(function () {
+        if (context.state !== 'running') return;
+        setButton(true);
+        playNote();
+        if (timer) window.clearInterval(timer);
+        timer = window.setInterval(playNote, 850);
+      }).catch(function () { setButton(false); });
+    } else {
+      if (timer) window.clearInterval(timer);
+      timer = null;
+      if (context && context.state === 'running') context.suspend();
+      setButton(false);
+    }
+  });
+  // Music is intentionally off on every page load; playback requires a user tap.
+  setButton(false);
+})();
+</script>
 </body>
 </html>
