@@ -15,11 +15,7 @@ IMAGE_DEST = ASSET_ROOT / "achievement"
 # Boys Love / Girls Love are ordinary romance-genre categories and are included.
 
 EXCLUDED = {
-    "anime-boku-no-pico.json",
-    "anime-pervert-0.json", "anime-pervert-1.json",
-    "anime-pervert-2.json", "anime-pervert-3.json",
-    "manga-pervert-0.json", "manga-pervert-1.json",
-    "manga-pervert-2.json", "manga-pervert-3.json",
+    
 }
 
 GENRES = {
