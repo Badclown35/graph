@@ -54,13 +54,14 @@ foreach ($definitionFiles as $file) {
         $seenIds[$achievement->id] = true;
 
         $threshold = (string) $achievement->threshold;
-        if (!preg_match('/^(?:[0-9]+(?:\\.[0-9]+)?\\+|[0-9]+(?:\\.[0-9]+)?(?:\\.\\.|-)[0-9]+(?:\\.[0-9]+)?)$/', $threshold)) {
+        if (!preg_match('/^(?:[0-9]+|[0-9]+(?:\\.[0-9]+)?\\+|[0-9]+(?:\\.[0-9]+)?(?:\\.\\.|-)[0-9]+(?:\\.[0-9]+)?)$/', $threshold)) {
             $errors[] = $achievement->id . ': unsupported threshold format "' . $threshold . '"';
         }
 
         $imageFound = false;
         foreach ($imageNames as $imageName) {
-            if (preg_match('/' . preg_quote($achievement->id, '/') . '[^0-9a-zA-Z_-]/', $imageName)) {
+            if (pathinfo($imageName, PATHINFO_FILENAME) === $achievement->id
+                || preg_match('/^' . preg_quote($achievement->id, '/') . '(?:[-_].+)?$/', pathinfo($imageName, PATHINFO_FILENAME))) {
                 $imageFound = true;
                 break;
             }
