@@ -87,13 +87,15 @@ def how_to_earn(requirement, media, group_name):
         return f"{verb.capitalize()} the required number of {unit} while keeping your Dropped count at zero. Even one dropped entry blocks this group."
     if kind == "genre-title":
         genre_id = requirement.get("genre")
+        genre_ids = genre_id if isinstance(genre_id, list) else ([genre_id] if genre_id is not None else [])
         genre_names = {40:"Psychological", 13:"Historical", 14:"Horror", 22:"Romance", 28:"Slice of Life", 10:"Fantasy", 7:"Mystery", 24:"Sci-Fi", 30:"Sports", 18:"Music", 17:"Mecha", 32:"Vampire", 2:"Adventure", 1:"Action", 4:"Comedy", 8:"Drama"}
-        genre = genre_names.get(genre_id, group_name)
+        genres = [genre_names.get(x, f"genre ID {x}") for x in genre_ids]
+        genre = " / ".join(genres) if genres else group_name
         titles = requirement.get("titles", [])
-        if genre_id is not None and titles:
-            return f"Finish {unit} tagged {genre} (MAL genre ID {genre_id}), OR finish the extra titles in Graph's original rule. On MAL, open each title and check its Genres/Theme tags. Only entries marked Completed count; reach the target shown on this level."
-        if genre_id is not None:
-            return f"Finish {unit} tagged {genre} (MAL genre ID {genre_id}). On MAL, open each title and check its Genres/Theme tags; only entries marked Completed count. Reach the target shown on this level."
+        if genre_ids and titles:
+            return f"Finish {unit} tagged {genre} (MAL genre ID(s): {', '.join(map(str, genre_ids))}), OR finish the extra titles in Graph's original rule. On MAL, open each title and check its Genres/Theme tags. Only entries marked Completed count; reach the target shown on this level."
+        if genre_ids:
+            return f"Finish {unit} tagged {genre} (MAL genre ID(s): {', '.join(map(str, genre_ids))}). On MAL, open each title and check its Genres/Theme tags; only entries marked Completed count. Reach the target shown on this level."
         if titles:
             return f"Finish the exact titles included in Graph's original rule. Match them by MAL ID in the source definition; only Completed entries count. Reach the target shown on this level."
         return f"Finish entries matching the {group_name} rule. Only Completed entries count; reach the target shown on this level."
@@ -101,8 +103,7 @@ def how_to_earn(requirement, media, group_name):
         return f"{verb.capitalize()} the exact MAL title(s) listed in Graph's original definition. Similar titles or another season do not count unless separately listed."
     if kind == "source-title":
         source_ids = requirement.get("source", [])
-        if isinstance(source_ids, int):
-            source_ids = [source_ids]
+        source_ids = source_ids if isinstance(source_ids, list) else [source_ids]
         source_names = {1:"Original",2:"Manga",3:"4-koma manga",4:"Web manga",5:"Digital manga",6:"Novel",7:"Light novel",8:"Visual novel",9:"Game",10:"Music",11:"Picture book",12:"Other"}
         sources = ", ".join(source_names.get(x, f"source ID {x}") for x in source_ids) or "the source type stated by Graph"
         return f"Finish {unit} whose MAL Source field is {sources}. Open the title's MAL page and check Information → Source. Only Completed entries count; reach the target shown on this level."
