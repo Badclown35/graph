@@ -46,8 +46,8 @@ function applyImportedProgress(entries,media){
   if(value===null)continue;
   for(const a of g.achievements){
    const threshold=String(a.threshold);
-   const range=threshold.match(/^([0-9.]+)(?:\\.\\.|-)([0-9.]+)$/);
-   const open=threshold.match(/^([0-9.]+)\\+$/);
+   const range=threshold.match(/^([0-9.]+)(?:\.\.|-)([0-9.]+)$/);
+   const open=threshold.match(/^([0-9.]+)\+$/);
    if(!range&&!open)continue;
    const low=Number((range||open)[1]),high=range?Number(range[2]):Infinity;
    const met=value>=low&&value<=high;
