@@ -33,6 +33,7 @@ function applyImportedProgress(entries,media){
  const rereads=eligible.reduce((sum,e)=>sum+e.rewatches,0);
  let checked=0;
  const newlyEarned=[];
+ const progressLines=[];
  for(const g of catalog.groups){
   if(g.media!==media)continue;
   let value=null,rangeMode=false;
@@ -48,12 +49,13 @@ function applyImportedProgress(entries,media){
    if(!m)continue;
    const low=Number(m[1]),high=m[2]===undefined?Infinity:Number(m[2]);
    const met=value>=low&&value<=high;
+   progressLines.push({group:g.name,title:a.title,level:a.level,target:a.thresholdLabel||a.threshold,value,met});
    if(met&&!earned.has(a.id)){earned.add(a.id);checked++;newlyEarned.push({group:g.name,title:a.title,level:a.level,target:a.thresholdLabel||a.threshold})}
   }
  }
  try{localStorage.setItem("graph-earned-badges",JSON.stringify([...earned]))}catch(e){}
  $("#earned").textContent=earned.size;render();
- return {completed,dropped,mean,longAnime,longManga,rereads,checked,newlyEarned};
+ return {completed,dropped,mean,longAnime,longManga,rereads,checked,newlyEarned,progressLines};
 }
 function validBadgeIds(ids){const known=new Set(catalog.groups.flatMap(g=>g.achievements.map(a=>a.id)));return [...new Set(ids.filter(id=>typeof id==="string"&&known.has(id)))]}
 $("#makeBackup").addEventListener("click",()=>{
@@ -122,10 +124,12 @@ $("#malFile").addEventListener("change",async()=>{
   const result=applyImportedProgress(entries,media);
   const average=result.mean===null?"not available":result.mean.toFixed(2);
   const longCount=media==="anime"?result.longAnime:result.longManga;
-  const earnedLines=result.newlyEarned.length?result.newlyEarned.map(b=>"✓ "+b.group+" — "+b.level+": "+b.title+" ("+b.target+")").join("\n"):"No new automatically verified badges this import.";
-  const scoreNote=result.mean===null?"Average score unavailable.":("Average score "+result.mean.toFixed(2)+"/10; the High Score badge starts at 8.5.");
-  const progressNote="Completed-entry badge starts at 100; you have "+result.completed+"/100.";
-  $("#importResult").textContent="IMPORT COMPLETE\\n"+entries.length+" "+media+" entries · Completed: "+result.completed+" · Dropped: "+result.dropped+" · "+scoreNote+"\\n"+(media==="anime"?"Long-series entries (>99 watched episodes): ":"Long-manga entries (>19 read volumes): ")+longCount+" · "+(media==="anime"?"Rewatches: ":"Rereads: ")+result.rereads+"\\n\\nBADGES EARNED FROM THIS IMPORT\\n"+earnedLines+"\\n\\nYOUR NEXT CHECKS\\n"+progressNote+"\\nMetadata badges (genres, source, franchise, release period and runtime) cannot be verified from a basic MAL export alone. Their cards explain the exact MAL tag/source field or title rule to check; mark a level earned once your completed entries meet its target.";
+  const allEarned=catalog.groups.filter(g=>g.media===media).flatMap(g=>g.achievements.filter(a=>earned.has(a.id)).map(a=>"✓ "+g.name+" — "+a.level+": "+a.title));
+  const earnedLines=allEarned.length?allEarned.join("\\n"):"No badges are currently marked earned for this list.";
+  const progressLines=result.progressLines.map(p=>(p.met?"✓ ":"○ ")+p.group+" — "+p.level+": "+p.title+" ("+p.value+(p.group.toLowerCase().includes("score")?"/10":"")+"/"+p.target+")");
+  const scoreNote=result.mean===null?"Average score unavailable.":("Average score "+result.mean.toFixed(2)+"/10; High Score starts at 8.5.");
+  const metadataNote="Metadata badges (genres, source, franchise, release period and runtime) need extra title metadata. Check each card for its exact rule; they are not guessed from the export.";
+  $("#importResult").textContent="IMPORT COMPLETE\\n"+entries.length+" "+media+" entries · Completed: "+result.completed+" · Dropped: "+result.dropped+" · "+scoreNote+"\\n"+(media==="anime"?"Long-series entries (>99 watched episodes): ":"Long-manga entries (>19 read volumes): ")+longCount+" · "+(media==="anime"?"Rewatches: ":"Rereads: ")+result.rereads+"\\n\\nCURRENTLY EARNED ("+allEarned.length+")\\n"+earnedLines+"\\n\\nAUTO-CHECKED BADGE PROGRESS\\n"+(progressLines.length?progressLines.join("\\n"):"No numeric progress rules were available for this list.")+"\\n\\nMETADATA BADGES\\n"+metadataNote;
  }catch(e){$("#importResult").textContent="Import error: "+e.message}
 });
 </script></body></html>
